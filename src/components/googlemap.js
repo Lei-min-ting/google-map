@@ -1,6 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Map, GoogleApiWrapper, Marker,infoWindow } from "google-maps-react";
+import {
+  Map,
+  GoogleApiWrapper,
+  Marker,
+  infoWindow,
+  google,
+} from "google-maps-react";
 import Card from "./inforCard";
+import PlaceAutocompletefunc from './placeAutocomplete';
 
 const mapStyles = {
   width: "40%",
@@ -49,15 +56,21 @@ const GroupBuyLeaerInfo = [
 export const MapContainer = (props) => {
   const [groupBuyleaderId, setGroupBuyleaderId] = useState("");
   const [filterLeaderInfo, setFilterLeaderInfo] = useState({});
-  const [currentLocation,setCurrentLocation] = useState({});
-  const [showCurrentLocaMark,setShowCurrentLocaMark] = useState(false);
-  const [zoomsize,setzoom] = useState(3);
+  const [initialLocation,setInitialLocation] =useState({lat: 56.5, lng: -158.75,});
+  const [currentLocation, setCurrentLocation] = useState({});
+
+  const [showCurrentLocaMark, setShowCurrentLocaMark] = useState(false);
+  const [zoomsize, setzoom] = useState(6);
 
   const clickRef = useRef(groupBuyleaderId);
-        clickRef.current = groupBuyleaderId;
-  
+  clickRef.current = groupBuyleaderId;
+
   const currentRef = useRef(currentLocation);
-        currentRef.current = currentLocation;
+  currentRef.current = currentLocation;
+
+  const locationReceiveHanlder = (location)=>{
+    setInitialLocation(location);
+  }
 
   const GroupLeaderInfoSendHandler = (id) => {
     setGroupBuyleaderId(id);
@@ -68,49 +81,51 @@ export const MapContainer = (props) => {
     }
   };
 
-  let marker=null;
-  const CurrentLocationIdentifier =()=>{
-    console.log('1');
+  let marker = null;
+
+  const CurrentLocationIdentifier = () => {
+    console.log("1");
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-            const pos = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-          console.log('pos:'+pos)
-          setCurrentLocation(pos)
-        })
-        console.log(currentLocation);
-        Map.setCenter({lat:currentLocation.lat,lng:currentLocation.lng});
-        setzoom(6);
-         //marker = <Marker position ={currentLocation}/> 
-         console.log('Marker:'+ marker);
-        //setShowCurrentLocaMark(true);
-          /*infoWindow.setPosition(pos);
+      navigator.geolocation.getCurrentPosition((position) => {
+        const pos = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+        setCurrentLocation(pos);
+      });
+        
+        
+      
+     
+      //setShowCurrentLocaMark(true);
+      /*infoWindow.setPosition(pos);
           infoWindow.setContent("Location found.");
           infoWindow.open(map);
           map.setCenter(pos);*/
-        }
-  }
-  
-
-
+    }
+  };
+  console.log("iniLat:"+initialLocation.lat,"iniLag:"+initialLocation.lng);
   return (
     <div className="grid grid-cols-2 bg-gray-200 h-screen">
-      
       <div className="pt-20 pl-10 ">
-      <button onClick={CurrentLocationIdentifier}>Pan to current Location</button>
+        <button id="CurLoca" onClick={CurrentLocationIdentifier}>
+          Pan to current Location
+        </button>
+        <PlaceAutocompletefunc LocaReceiver={locationReceiveHanlder}/>
         <Map
+          id="map"
           google={props.google}
           zoom={zoomsize}
           style={mapStyles}
           initialCenter={{
-            lat: 38.51417683162813,
-            lng: -99.32401849641076,
+            lat:initialLocation.lat,
+            lng: initialLocation.lng
+           //lat: 38.51417683162813,
+           //lng: -99.32401849641076,
           }}
         >
-          <Marker position={currentLocation}/>
+          <Marker position={initialLocation}/>
+          <Marker position={currentRef.current}/>
           {loca.map((location) => {
             return (
               <Marker
